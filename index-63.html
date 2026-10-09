@@ -1,0 +1,1353 @@
+<!doctype html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0d0f12">
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KICA8cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjExMiIgZmlsbD0iIzBkMGYxMiIvPgogIDxwYXRoIGQ9Ik02NCAyNTYgUTI1NiA3MCA0NDggMjU2IFEyNTYgNDQyIDY0IDI1NiBaIiBmaWxsPSJub25lIiBzdHJva2U9IiM0YWRlODAiIHN0cm9rZS13aWR0aD0iMzAiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KICA8Y2lyY2xlIGN4PSIyNTYiIGN5PSIyNTYiIHI9Ijc0IiBmaWxsPSIjNGFkZTgwIi8+CiAgPGNpcmNsZSBjeD0iMjU2IiBjeT0iMjU2IiByPSIzMCIgZmlsbD0iIzBkMGYxMiIvPgo8L3N2Zz4K">
+<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KICA8cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjExMiIgZmlsbD0iIzBkMGYxMiIvPgogIDxwYXRoIGQ9Ik02NCAyNTYgUTI1NiA3MCA0NDggMjU2IFEyNTYgNDQyIDY0IDI1NiBaIiBmaWxsPSJub25lIiBzdHJva2U9IiM0YWRlODAiIHN0cm9rZS13aWR0aD0iMzAiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KICA8Y2lyY2xlIGN4PSIyNTYiIGN5PSIyNTYiIHI9Ijc0IiBmaWxsPSIjNGFkZTgwIi8+CiAgPGNpcmNsZSBjeD0iMjU2IiBjeT0iMjU2IiByPSIzMCIgZmlsbD0iIzBkMGYxMiIvPgo8L3N2Zz4K">
+<title>CamWatch</title>
+<style>
+  :root {
+    --bg: #0d0f12; --panel: #161a20; --panel2: #1d222a; --line: #2a313b;
+    --text: #e9edf2; --muted: #8b95a3; --accent: #4ade80; --accent2: #22c55e;
+    --warn: #fbbf24; --bad: #f87171; --blue: #60a5fa; --r: 14px;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; background: var(--bg); color: var(--text);
+    font: 15px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  body { padding: env(safe-area-inset-top) 0 calc(24px + env(safe-area-inset-bottom)); }
+  main { max-width: 640px; margin: 0 auto; padding: 0 12px; }
+  header { display: flex; align-items: center; justify-content: space-between; padding: 12px 2px 10px; }
+  h1 { font-size: 19px; margin: 0; letter-spacing: .2px; }
+  h1 span { color: var(--accent); }
+  .pill { font-size: 12.5px; padding: 4px 10px; border-radius: 99px; background: var(--panel2); color: var(--muted); white-space: nowrap; }
+  .pill.run { background: rgba(74,222,128,.15); color: var(--accent); }
+  .pill.err { background: rgba(248,113,113,.15); color: var(--bad); }
+
+  #stage { position: relative; background: #000; border-radius: var(--r); overflow: hidden; aspect-ratio: 4/3; }
+  #stage video, #stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+  #stage .hint { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); text-align: center; padding: 20px; }
+  .fab { position: absolute; top: 8px; width: 40px; height: 40px; border-radius: 50%; border: 0;
+    background: rgba(0,0,0,.55); color: #fff; font-size: 18px; display: grid; place-items: center; }
+  #flipBtn { right: 8px; } #darkBtn { right: 56px; }
+
+  .stats { display: flex; flex-wrap: wrap; gap: 6px 12px; color: var(--muted); font-size: 12.5px; padding: 8px 2px 4px; }
+  .stats b { color: var(--text); font-weight: 600; }
+
+  button { font: inherit; color: inherit; cursor: pointer; }
+  .big { width: 100%; padding: 15px; margin: 8px 0 4px; border: 0; border-radius: var(--r);
+    background: var(--accent2); color: #04130a; font-size: 17px; font-weight: 700; }
+  .big.stop { background: var(--bad); color: #1a0505; }
+  .big:disabled { opacity: .6; }
+  .progress { height: 6px; background: var(--panel2); border-radius: 99px; overflow: hidden; margin: 6px 0; display: none; }
+  .progress i { display: block; height: 100%; width: 0; background: var(--blue); transition: width .2s; }
+  .msg { font-size: 13px; color: var(--muted); min-height: 18px; }
+  .msg.err { color: var(--bad); }
+
+  #live { background: var(--panel); border-radius: var(--r); padding: 10px 12px; margin-top: 10px; display: grid; gap: 8px; }
+  #live:empty { display: none; }
+  .lrow { display: grid; grid-template-columns: minmax(90px, 38%) 1fr 42px; gap: 8px; align-items: center; font-size: 13px; }
+  .lrow .n { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bar { position: relative; height: 10px; background: var(--panel2); border-radius: 99px; overflow: hidden; }
+  .bar i { position: absolute; inset: 0 auto 0 0; width: 0; background: var(--blue); border-radius: 99px; transition: width .25s; }
+  .bar i.hot { background: var(--accent); }
+  .bar u { position: absolute; top: -2px; bottom: -2px; width: 2px; background: var(--warn); }
+  .lrow .v { text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); }
+
+  h2 { font-size: 15px; margin: 22px 2px 8px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .6px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 12px; margin-bottom: 10px; }
+  .card.off { opacity: .55; }
+  .row { display: flex; gap: 8px; align-items: center; }
+  .row + .row, .card > label + label, .card .field { margin-top: 10px; }
+  label { display: block; font-size: 12.5px; color: var(--muted); }
+  input[type=text], input[type=password], textarea, select {
+    width: 100%; margin-top: 4px; padding: 10px 11px; border-radius: 10px; border: 1px solid var(--line);
+    background: var(--panel2); color: var(--text); font: inherit; font-size: 15px; }
+  textarea { resize: vertical; min-height: 44px; }
+  input.name { font-weight: 650; margin: 0; }
+  input[type=range] { width: 100%; accent-color: var(--accent); }
+  .warn { color: var(--warn); font-size: 12.5px; margin-top: 4px; display: none; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .chips .chip { margin: 0; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; padding: 7px 10px; border-radius: 99px;
+    background: var(--panel2); border: 1px solid var(--line); font-size: 13.5px; color: var(--text); user-select: none; }
+  .chip input { margin: 0; accent-color: var(--accent); }
+  .chip select { margin: 0; padding: 2px 4px; width: auto; font-size: 13px; border-radius: 6px; }
+  .small { padding: 8px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel2); font-size: 13.5px; }
+  .small.danger { color: var(--bad); }
+  .switch { position: relative; width: 46px; height: 28px; flex: none; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .switch span { position: absolute; inset: 0; background: var(--line); border-radius: 99px; transition: .2s; }
+  .switch span::after { content: ""; position: absolute; left: 3px; top: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; transition: .2s; }
+  .switch input:checked + span { background: var(--accent2); }
+  .switch input:checked + span::after { transform: translateX(18px); }
+  .add { width: 100%; padding: 12px; border-radius: var(--r); border: 1px dashed var(--line); background: transparent; color: var(--muted); }
+
+  details.card > summary { cursor: pointer; font-weight: 600; list-style: none; }
+  details.card > summary::after { content: "▾"; float: right; color: var(--muted); }
+  details[open].card > summary::after { content: "▴"; }
+  .sub { font-size: 12.5px; color: var(--muted); margin-top: 3px; }
+  .sub a { color: var(--blue); }
+
+  #events { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+  .ev { background: var(--panel); border-radius: 10px; overflow: hidden; font-size: 12px; text-decoration: none; color: var(--text); }
+  .ev img { width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; background: #000; }
+  .ev div { padding: 6px 8px; }
+  .ev small { color: var(--muted); }
+  .empty { color: var(--muted); font-size: 13px; }
+
+  #blackout { position: fixed; inset: 0; background: #000; z-index: 50; display: none; color: #333;
+    align-items: flex-end; justify-content: center; padding-bottom: 40px; font-size: 13px; text-align: center; }
+  #blackout.on { display: flex; }
+  #toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom)); transform: translateX(-50%) translateY(120px);
+    background: #222a35; color: var(--text); padding: 10px 14px; border-radius: 12px; font-size: 13.5px; z-index: 60;
+    max-width: calc(100% - 24px); transition: transform .25s; box-shadow: 0 6px 24px rgba(0,0,0,.4); }
+  #toast.show { transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Cam<span>Watch</span></h1>
+    <div id="status" class="pill">Έτοιμο</div>
+  </header>
+
+  <div id="stage">
+    <video id="video" playsinline muted autoplay></video>
+    <canvas id="overlay"></canvas>
+    <div class="hint" id="hint">Πάτα «Έναρξη» — η κάμερα και η ανάλυση<br>τρέχουν μόνο πάνω στο κινητό σου.</div>
+    <button class="fab" id="flipBtn" title="Αλλαγή κάμερας">🔄</button>
+    <button class="fab" id="darkBtn" title="Μαύρη οθόνη (οικονομία μπαταρίας)">🌙</button>
+  </div>
+
+  <div class="stats" id="stats"></div>
+  <button class="big" id="startBtn">▶ Έναρξη</button>
+  <div class="progress" id="prog"><i></i></div>
+  <div class="msg" id="msg"></div>
+
+  <div id="live"></div>
+
+  <h2>Κανόνες</h2>
+  <div id="rules"></div>
+  <button class="add" id="addRule">+ Νέος κανόνας</button>
+
+  <h2>Ρυθμίσεις</h2>
+  <details class="card" id="settingsBox">
+    <summary>Μηνύματα στο κινητό</summary>
+    <label class="field">ntfy θέμα
+      <input type="text" data-set="ntfyTopic" placeholder="π.χ. orfeas-cam-8k2j" autocomplete="off">
+    </label>
+    <div class="sub">Το πιο εύκολο: κατέβασε το app <b>ntfy</b> σε όποιο κινητό θες να έρχονται οι ειδοποιήσεις → «+» → γράψε το ίδιο όνομα.</div>
+    <label class="field">Telegram bot token
+      <input type="password" data-set="tgToken" placeholder="123456:ABC..." autocomplete="off">
+    </label>
+    <label class="field">Telegram chat id
+      <div class="row"><input type="text" data-set="tgChat" placeholder="το βρίσκω μόνο μου →" autocomplete="off">
+      <button class="small" id="tgFind" style="margin-top:4px;white-space:nowrap">Βρες το</button></div>
+    </label>
+    <div class="sub">Φτιάξε bot στον @BotFather, στείλε του ένα «γεια», μετά πάτα «Βρες το».</div>
+    <div class="row" style="margin-top:12px"><button class="small" id="testNotify">Στείλε δοκιμαστικό</button></div>
+  </details>
+
+  <details class="card">
+    <summary>Απόδοση & μπαταρία</summary>
+    <label class="field">Ταχύτητα ελέγχου
+      <select data-set="speed">
+        <option value="fast">Γρήγορη — συνέχεια (ζεσταίνει)</option>
+        <option value="normal">Κανονική — κάθε ~1 δευτ.</option>
+        <option value="eco">Οικονομική — κάθε ~3 δευτ. (για ώρες)</option>
+      </select>
+    </label>
+    <label class="field">Αναμονή πριν ξαναχτυπήσει ο ίδιος κανόνας (δευτ.)
+      <input type="text" inputmode="numeric" data-set="cooldown">
+    </label>
+    <label class="field">Πόσοι συνεχόμενοι έλεγχοι για να χτυπήσει (κόβει ψεύτικα alerts)
+      <select data-set="confirm"><option>1</option><option>2</option><option>3</option><option>4</option></select>
+    </label>
+    <label class="field">Μοντέλο
+      <select data-set="model" id="modelSel"></select>
+    </label>
+    <div class="sub">Αν το ένα δεν φορτώνει στο κινητό σου, δοκίμασε το άλλο.</div>
+  </details>
+
+  <details class="card">
+    <summary>Για προχωρημένους</summary>
+    <label class="field">ntfy server <input type="text" data-set="ntfyServer" placeholder="https://ntfy.sh"></label>
+    <div class="row" style="margin-top:12px"><button class="small danger" id="resetBtn">Επαναφορά όλων</button></div>
+  </details>
+
+  <h2>Τι είδε</h2>
+  <div id="events"><div class="empty">Τίποτα ακόμα.</div></div>
+</main>
+
+<div id="blackout">Τρέχει κανονικά · πάτα οπουδήποτε για να δεις</div>
+<div id="toast"></div>
+
+<script id="worker-src" type="text/plain">
+// worker.js — «ο εγκέφαλος»: τρέχει τα μοντέλα σε ξεχωριστό thread.
+// Αν κάτι χαλάσει εδώ μέσα, η σελίδα σκοτώνει τον worker και φτιάχνει καινούριο.
+
+const ORT_VER = "1.31.0-dev.20260914-8d85527a0"; // ίδια έκδοση με αυτή που χρησιμοποιεί το transformers.js
+const ORT_BASE = `https://cdn.jsdelivr.net/npm/onnxruntime-web@${ORT_VER}/dist/`;
+const TF_URL = "https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.3.1/dist/transformers.min.js";
+
+const CLIP_MODELS = {
+  mobileclip: { id: "Xenova/mobileclip_s0", text: "q8", vision: "fp32" },
+  clip: { id: "Xenova/clip-vit-base-patch32", text: "q8", vision: "q8" },
+};
+
+let ort, yolo, yoloInput;
+let T, tokenizer, processor, textModel, visionModel, device = "wasm", noBatch = false;
+
+const post = (msg, transfer) => self.postMessage(msg, transfer || []);
+
+async function fetchWithProgress(url, onProgress) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`${url}: HTTP ${res.status}`);
+  const total = +res.headers.get("content-length") || 0;
+  if (!res.body || !total) return new Uint8Array(await res.arrayBuffer());
+  const reader = res.body.getReader();
+  const buf = new Uint8Array(total);
+  let loaded = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    if (loaded + value.length > buf.length) throw new Error("download size mismatch");
+    buf.set(value, loaded);
+    loaded += value.length;
+    onProgress(loaded, total);
+  }
+  return buf;
+}
+
+async function init({ modelKey, allowGpu, yoloUrls }) {
+  // 1) ανιχνευτής ατόμων — δοκιμάζει διαδοχικά τις πηγές
+  ort = await import(ORT_BASE + "ort.wasm.min.mjs");
+  ort.env.wasm.wasmPaths = ORT_BASE;
+  let bytes = null, lastErr;
+  for (const url of yoloUrls) {
+    try {
+      const b = await fetchWithProgress(url, (l, t) => post({ type: "progress", part: "det", loaded: l, total: t }));
+      if (b.length < 1e6) throw new Error(`${url}: not a model`);
+      bytes = b;
+      break;
+    } catch (e) { lastErr = e; }
+  }
+  if (!bytes) throw lastErr || new Error("Δεν κατέβηκε ο ανιχνευτής ατόμων");
+  yolo = await ort.InferenceSession.create(bytes, { executionProviders: ["wasm"], graphOptimizationLevel: "all" });
+  yoloInput = new Float32Array(3 * 640 * 640);
+
+  // 2) CLIP
+  T = await import(TF_URL);
+  T.env.allowLocalModels = false;
+  const cfg = CLIP_MODELS[modelKey] || CLIP_MODELS.mobileclip;
+  const files = {};
+  const progress_callback = (p) => {
+    if (p.status === "progress" && p.total) {
+      files[p.file] = [p.loaded, p.total];
+      let l = 0, t = 0;
+      for (const [a, b] of Object.values(files)) { l += a; t += b; }
+      post({ type: "progress", part: "clip", loaded: l, total: t });
+    }
+  };
+  tokenizer = await T.AutoTokenizer.from_pretrained(cfg.id, { progress_callback });
+  processor = await T.AutoProcessor.from_pretrained(cfg.id, { progress_callback });
+  textModel = await T.CLIPTextModelWithProjection.from_pretrained(cfg.id, { dtype: cfg.text, device: "wasm", progress_callback });
+
+  let useGpu = false;
+  if (allowGpu && self.navigator?.gpu) {
+    try { useGpu = !!(await navigator.gpu.requestAdapter()); } catch { useGpu = false; }
+  }
+  if (useGpu) {
+    try {
+      visionModel = await T.CLIPVisionModelWithProjection.from_pretrained(cfg.id, { dtype: "fp32", device: "webgpu", progress_callback });
+      device = "webgpu";
+      await embedImages([blank()]);
+    } catch (e) {
+      // Η βιβλιοθήκη «χαλάει» μετά από αποτυχία — η σελίδα θα με ξαναφτιάξει χωρίς GPU
+      post({ type: "gpu-failed", message: String(e?.message || e) });
+      return false;
+    }
+  } else {
+    visionModel = await T.CLIPVisionModelWithProjection.from_pretrained(cfg.id, { dtype: cfg.vision, device: "wasm", progress_callback });
+    device = "wasm";
+    await embedImages([blank()]);
+  }
+  return true;
+}
+
+const blank = () => ({ data: new Uint8ClampedArray(64 * 64 * 4).fill(128), width: 64, height: 64 });
+
+async function detect({ data, sw, sh, scale, minScore = 0.35, maxPeople = 6 }) {
+  const px = new Uint8ClampedArray(data);
+  const S = 640, n = S * S, input = yoloInput;
+  for (let i = 0, j = 0; i < n; i++, j += 4) {
+    input[i] = px[j] / 255;
+    input[n + i] = px[j + 1] / 255;
+    input[2 * n + i] = px[j + 2] / 255;
+  }
+  const tensor = new ort.Tensor("float32", input, [1, 3, S, S]);
+  const out = await yolo.run({ [yolo.inputNames[0]]: tensor });
+  const res = out[yolo.outputNames[0]];
+  const o = res.data, N = res.dims[2];
+  const cands = [];
+  for (let i = 0; i < N; i++) {
+    const s = o[4 * N + i]; // κλάση 0 = person
+    if (s < minScore) continue;
+    const cx = o[i], cy = o[N + i], w = o[2 * N + i], h = o[3 * N + i];
+    cands.push({
+      x1: Math.max(0, (cx - w / 2) / scale), y1: Math.max(0, (cy - h / 2) / scale),
+      x2: Math.min(sw, (cx + w / 2) / scale), y2: Math.min(sh, (cy + h / 2) / scale), score: s,
+    });
+  }
+  tensor.dispose?.();
+  res.dispose?.();
+  cands.sort((a, b) => b.score - a.score);
+  const keep = [];
+  for (const c of cands) if (keep.every((k) => iou(k, c) < 0.45)) keep.push(c);
+  const area = (b) => (b.x2 - b.x1) * (b.y2 - b.y1);
+  const all = keep.filter((b) => b.x2 - b.x1 > 12 && b.y2 - b.y1 > 24).sort((a, b) => area(b) - area(a));
+  return { people: all.slice(0, maxPeople), total: all.length };
+}
+
+function iou(a, b) {
+  const ix = Math.max(0, Math.min(a.x2, b.x2) - Math.max(a.x1, b.x1));
+  const iy = Math.max(0, Math.min(a.y2, b.y2) - Math.max(a.y1, b.y1));
+  const inter = ix * iy;
+  return inter / ((a.x2 - a.x1) * (a.y2 - a.y1) + (b.x2 - b.x1) * (b.y2 - b.y1) - inter + 1e-6);
+}
+
+async function embedTexts(texts) {
+  const inputs = tokenizer(texts, { padding: "max_length", truncation: true, max_length: 77 });
+  const { text_embeds } = await textModel(inputs);
+  const out = text_embeds.normalize().tolist();
+  text_embeds.dispose?.();
+  return out;
+}
+
+async function _embed(images) {
+  const inputs = await processor(images);
+  const { image_embeds } = await visionModel(inputs);
+  const v = image_embeds.normalize().tolist();
+  image_embeds.dispose?.();
+  inputs.pixel_values?.dispose?.();
+  return v;
+}
+
+async function embedImages(imgs) {
+  const images = imgs.map((im) => new T.RawImage(new Uint8ClampedArray(im.data.buffer || im.data), im.width, im.height, 4).rgb());
+  if (!noBatch || images.length === 1) {
+    try {
+      return await _embed(images);
+    } catch (e) {
+      if (images.length === 1) throw e;
+      // ίσως το μοντέλο δεν δέχεται πολλές εικόνες μαζί — η σελίδα θα με ξαναφτιάξει σε «μία-μία»
+      throw Object.assign(new Error("batch failed: " + (e?.message || e)), { code: "nobatch" });
+    }
+  }
+  const out = [];
+  for (const im of images) out.push(...(await _embed([im])));
+  return out;
+}
+
+self.onmessage = async ({ data: msg }) => {
+  const { id, type } = msg;
+  try {
+    let result;
+    if (type === "init") {
+      noBatch = !!msg.noBatch;
+      const ok = await init(msg);
+      if (!ok) return;
+      result = { device };
+    } else if (type === "detect") result = await detect(msg);
+    else if (type === "embedTexts") result = await embedTexts(msg.texts);
+    else if (type === "embedImages") result = await embedImages(msg.images);
+    else throw new Error("unknown " + type);
+    post({ id, ok: true, result });
+  } catch (e) {
+    post({ id, ok: false, error: String(e?.message || e), code: e?.code });
+  }
+};
+</script>
+<script type="module">
+// ─── actions ───
+// actions.js — ήχοι, δόνηση, φωνή, μηνύματα
+
+let ac = null;
+
+/** Πρέπει να κληθεί από πάτημα κουμπιού (αλλιώς οι browsers μπλοκάρουν τον ήχο). */
+function unlockAudio() {
+  try {
+    ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+    if (ac.state === "suspended") ac.resume();
+    // «ξεκλείδωμα» ομιλίας σε iOS
+    if ("speechSynthesis" in window) {
+      const u = new SpeechSynthesisUtterance(" ");
+      u.volume = 0;
+      speechSynthesis.speak(u);
+    }
+  } catch (e) {
+    console.warn(e);
+  }
+}
+
+function tone(t0, dur, f0, f1, type = "sine", vol = 0.6) {
+  const o = ac.createOscillator();
+  const g = ac.createGain();
+  o.type = type;
+  o.frequency.setValueAtTime(f0, t0);
+  o.frequency.exponentialRampToValueAtTime(Math.max(f1, 1), t0 + dur);
+  g.gain.setValueAtTime(0, t0);
+  g.gain.linearRampToValueAtTime(vol, t0 + 0.02);
+  g.gain.setValueAtTime(vol, t0 + dur - 0.03);
+  g.gain.linearRampToValueAtTime(0, t0 + dur);
+  o.connect(g).connect(ac.destination);
+  o.start(t0);
+  o.stop(t0 + dur + 0.02);
+}
+
+const SOUNDS = {
+  whistle: "Σφύριγμα",
+  beep: "Μπιπ",
+  alarm: "Συναγερμός",
+  bell: "Κουδουνάκι",
+};
+
+function playSound(name) {
+  if (!ac) unlockAudio();
+  if (!ac) return;
+  if (ac.state === "suspended") ac.resume();
+  const t = ac.currentTime + 0.05;
+  switch (name) {
+    case "whistle": // «φιου-φιούυυ»
+      tone(t, 0.22, 900, 2600);
+      tone(t + 0.34, 0.25, 900, 2500);
+      tone(t + 0.59, 0.45, 2500, 900);
+      break;
+    case "beep":
+      tone(t, 0.15, 1000, 1000, "square", 0.25);
+      tone(t + 0.25, 0.15, 1000, 1000, "square", 0.25);
+      break;
+    case "alarm":
+      for (let i = 0; i < 4; i++) tone(t + i * 0.5, 0.48, i % 2 ? 1400 : 700, i % 2 ? 700 : 1400, "sawtooth", 0.3);
+      break;
+    case "bell":
+      tone(t, 0.6, 1320, 1300, "triangle", 0.5);
+      tone(t + 0.15, 0.8, 1760, 1740, "triangle", 0.4);
+      break;
+  }
+}
+
+function vibrate() {
+  try {
+    navigator.vibrate?.([300, 150, 300, 150, 500]);
+  } catch {}
+}
+
+function speak(text) {
+  if (!("speechSynthesis" in window) || !text) return;
+  const u = new SpeechSynthesisUtterance(text);
+  const greek = /[Ͱ-Ͽἀ-῿]/.test(text);
+  u.lang = greek ? "el-GR" : "en-US";
+  const v = speechSynthesis.getVoices().find((v) => v.lang?.toLowerCase().startsWith(greek ? "el" : "en"));
+  if (v) u.voice = v;
+  speechSynthesis.cancel();
+  speechSynthesis.speak(u);
+}
+
+/**
+ * Στέλνει μήνυμα σε ntfy και/ή Telegram.
+ * @returns {Promise<string[]>} πού στάλθηκε
+ */
+async function sendMessage(cfg, text, photoBlob) {
+  const sent = [];
+  const errors = [];
+  if (cfg.ntfyTopic) {
+    try {
+      const server = (cfg.ntfyServer || "https://ntfy.sh").replace(/\/+$/, "");
+      const base = `${server}/${encodeURIComponent(cfg.ntfyTopic.trim())}`;
+      let res;
+      if (photoBlob) {
+        const q = new URLSearchParams({ message: text, filename: "camwatch.jpg" });
+        res = await fetch(`${base}?${q}`, { method: "PUT", body: photoBlob });
+      } else {
+        res = await fetch(base, { method: "POST", body: text });
+      }
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      sent.push("ntfy");
+    } catch (e) {
+      errors.push(`ntfy: ${e.message}`);
+    }
+  }
+  if (cfg.tgToken && cfg.tgChat) {
+    try {
+      const base = `https://api.telegram.org/bot${cfg.tgToken.trim()}`;
+      const fd = new FormData();
+      fd.append("chat_id", cfg.tgChat.trim());
+      let res;
+      if (photoBlob) {
+        fd.append("caption", text);
+        fd.append("photo", photoBlob, "camwatch.jpg");
+        res = await fetch(`${base}/sendPhoto`, { method: "POST", body: fd });
+      } else {
+        fd.append("text", text);
+        res = await fetch(`${base}/sendMessage`, { method: "POST", body: fd });
+      }
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      sent.push("Telegram");
+    } catch (e) {
+      errors.push(`Telegram: ${e.message}`);
+    }
+  }
+  if (errors.length) throw Object.assign(new Error(errors.join(" · ")), { sent });
+  return sent;
+}
+
+/** Βρίσκει το chat_id από το τελευταίο μήνυμα που στάλθηκε στο bot. */
+async function telegramFindChat(token) {
+  const r = await fetch(`https://api.telegram.org/bot${token.trim()}/getUpdates`);
+  const j = await r.json();
+  if (!j.ok) throw new Error(j.description || "Λάθος token");
+  const msgs = (j.result || []).map((u) => u.message || u.channel_post).filter(Boolean);
+  if (!msgs.length) throw new Error("Στείλε πρώτα ένα μήνυμα στο bot σου και ξαναδοκίμασε");
+  return String(msgs[msgs.length - 1].chat.id);
+}
+
+// ─── brain ───
+// brain.js — μιλάει με τον worker. Αν ο worker κολλήσει ή χαλάσει, τον ξαναφτιάχνει μόνος του.
+
+
+const WORKER_URL = typeof document !== "undefined" && document.getElementById("worker-src")
+  ? URL.createObjectURL(new Blob([document.getElementById("worker-src").textContent], { type: "text/javascript" }))
+  : new URL("./worker.js", import.meta.url);
+
+class Brain {
+  constructor() {
+    this.worker = null;
+    this.pending = new Map();
+    this.seq = 0;
+    this.opts = null;
+    this.ready = false;
+    this.device = null;
+    this.restarts = 0;
+    this.fails = 0;
+    this.restarting = null;
+    this.allowGpu = !store.get("cw_nogpu", false);
+    this.noBatch = store.get("cw_nobatch", false);
+    this.onProgress = null; // (part, loaded, total)
+    this.onRestart = null; // (reason)
+  }
+
+  /** Φορτώνει τα μοντέλα σε καινούριο worker. */
+  async start(opts) {
+    this.opts = opts;
+    this.ready = false;
+    const r = await this._spawn();
+    this.ready = true;
+    return r;
+  }
+
+  async _spawn() {
+    for (let attempt = 0; attempt < 3; attempt++) {
+      this._kill(new Error("restart"));
+      const w = new Worker(WORKER_URL, { type: "module" });
+      this.worker = w;
+      w.onmessage = (e) => this._onMsg(e.data);
+      w.onerror = (e) => {
+        e.preventDefault?.();
+        this._failAll(Object.assign(new Error(e.message || "worker crashed"), { code: "crash" }));
+      };
+      try {
+        const r = await this._req({
+          type: "init", modelKey: this.opts.modelKey, yoloUrls: this.opts.yoloUrls,
+          allowGpu: this.allowGpu, noBatch: this.noBatch,
+        }, [], 15 * 60 * 1000);
+        this.device = r.device;
+        this.fails = 0;
+        return r;
+      } catch (e) {
+        if (e.code === "gpu-failed") {
+          console.warn("WebGPU δεν δούλεψε — συνεχίζω με CPU:", e.message);
+          this.allowGpu = false;
+          store.set("cw_nogpu", true);
+          continue;
+        }
+        throw e;
+      }
+    }
+    throw new Error("Δεν ξεκίνησε η AI");
+  }
+
+  _onMsg(m) {
+    if (m.type === "progress") return this.onProgress?.(m.part, m.loaded, m.total);
+    if (m.type === "gpu-failed") {
+      // απορρίπτει το init που περιμένει
+      for (const [id, p] of this.pending) {
+        if (p.init) { clearTimeout(p.t); this.pending.delete(id); p.rej(Object.assign(new Error(m.message), { code: "gpu-failed" })); }
+      }
+      return;
+    }
+    const p = this.pending.get(m.id);
+    if (!p) return;
+    clearTimeout(p.t);
+    this.pending.delete(m.id);
+    if (m.ok) p.res(m.result);
+    else p.rej(Object.assign(new Error(m.error), { code: m.code }));
+  }
+
+  _req(msg, transfer = [], timeout = 30000) {
+    const id = ++this.seq;
+    return new Promise((res, rej) => {
+      const t = setTimeout(() => {
+        this.pending.delete(id);
+        rej(Object.assign(new Error("Η AI δεν απάντησε"), { code: "timeout" }));
+      }, timeout);
+      this.pending.set(id, { res, rej, t, init: msg.type === "init" });
+      this.worker.postMessage({ ...msg, id }, transfer);
+    });
+  }
+
+  _failAll(err) {
+    for (const [, p] of this.pending) { clearTimeout(p.t); p.rej(err); }
+    this.pending.clear();
+  }
+
+  _kill(err) {
+    if (this.worker) {
+      this.worker.onmessage = this.worker.onerror = null;
+      this.worker.terminate();
+      this.worker = null;
+    }
+    this._failAll(err);
+  }
+
+  async restart(reason) {
+    if (!this.restarting) {
+      this.restarts++;
+      console.warn("Επανεκκίνηση AI:", reason);
+      this.onRestart?.(reason);
+      this.restarting = this._spawn().finally(() => { this.restarting = null; });
+    }
+    return this.restarting;
+  }
+
+  async call(msg, transfer, timeout) {
+    if (this.restarting) await this.restarting;
+    try {
+      const r = await this._req(msg, transfer, timeout);
+      this.fails = 0;
+      return r;
+    } catch (e) {
+      if (e.code === "nobatch") {
+        this.noBatch = true;
+        store.set("cw_nobatch", true);
+        await this.restart("nobatch").catch(() => {});
+      } else if (e.message !== "restart") {
+        this.fails++;
+        // μετά από λάθος, η βιβλιοθήκη AI μένει «χαλασμένη» — καινούριος worker
+        if (["timeout", "crash"].includes(e.code) || this.fails >= 1) await this.restart(e.message).catch(() => {});
+      }
+      throw e;
+    }
+  }
+
+  detect(imageData, sw, sh, scale) {
+    return this.call({ type: "detect", data: imageData.data.buffer, sw, sh, scale }, [imageData.data.buffer], 15000);
+  }
+  embedTexts(texts) {
+    return this.call({ type: "embedTexts", texts }, [], 60000);
+  }
+  embedImages(imageDatas) {
+    const images = imageDatas.map((d) => ({ data: d.data.buffer, width: d.width, height: d.height }));
+    return this.call({ type: "embedImages", images }, images.map((i) => i.data), 30000);
+  }
+  stop() {
+    this._kill(new Error("stopped"));
+    this.ready = false;
+  }
+}
+
+// ─── app ───
+// app.js — CamWatch: κάμερα → άτομα → «τι βλέπω;» → κανόνες → ενέργειες
+
+const $ = (s) => document.querySelector(s);
+const els = {
+  video: $("#video"), overlay: $("#overlay"), hint: $("#hint"), status: $("#status"), stats: $("#stats"),
+  start: $("#startBtn"), prog: $("#prog"), msg: $("#msg"), live: $("#live"), rules: $("#rules"),
+  events: $("#events"), blackout: $("#blackout"), toast: $("#toast"),
+};
+
+// ───────────────────────── Αποθήκευση ─────────────────────────
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+};
+
+const uid = () => Math.random().toString(36).slice(2, 9);
+const DEFAULT_RULES = [
+  { id: uid(), on: true, name: "Γυναίκα με στρατιωτικά", what: "a woman wearing a military uniform", ignore: "",
+    threshold: 55, sound: "whistle", vibrate: true, say: "", notify: false, photo: true },
+  { id: uid(), on: true, name: "Άντρας με ποδιά", what: "a man wearing an apron", ignore: "",
+    threshold: 55, sound: "bell", vibrate: false, say: "Άντρας με ποδιά", notify: false, photo: true },
+  { id: uid(), on: true, name: "Παιδάκι με γλειφιτζούρι", what: "a child eating a lollipop", ignore: "",
+    threshold: 55, sound: "beep", vibrate: true, say: "", notify: true, photo: true },
+];
+const DEFAULT_SETTINGS = {
+  model: "mobileclip", facing: "environment", speed: "normal", cooldown: 30, confirm: 2,
+  ntfyTopic: "", ntfyServer: "", tgToken: "", tgChat: "",
+};
+let rules = store.get("cw_rules", DEFAULT_RULES);
+let settings = { ...DEFAULT_SETTINGS, ...store.get("cw_settings", {}) };
+const saveRules = () => store.set("cw_rules", rules);
+const saveSettings = () => store.set("cw_settings", settings);
+
+const CLIP_MODELS = {
+  mobileclip: { label: "MobileCLIP (γρήγορο, ~90MB)" },
+  clip: { label: "CLIP B/32 (εναλλακτικό, ~150MB)" },
+};
+
+// Γενικές «αντίθετες» περιγραφές: ο κανόνας πρέπει να ταιριάζει ΚΑΛΥΤΕΡΑ από αυτές
+const NEGATIVES = [
+  "a photo of a person", "a photo of a man", "a photo of a woman", "a photo of a child",
+  "a photo of a group of people", "a photo of an empty room", "a photo of a street",
+  "a photo of furniture", "a blurry photo", "a photo of a wall", "a photo of an object",
+];
+// Ανιχνευτής ατόμων (YOLOv8n, 12.8MB) — από CDN, με εναλλακτικές πηγές
+const YOLO_COMMIT = "fc4a52c466d15ad4519873a0cef22fbc935b93b6";
+const YOLO_URLS = [
+  `https://cdn.jsdelivr.net/gh/Hyuto/yolov8-onnxruntime-web@${YOLO_COMMIT}/public/model/yolov8n.onnx`,
+  `https://raw.githubusercontent.com/Hyuto/yolov8-onnxruntime-web/${YOLO_COMMIT}/public/model/yolov8n.onnx`,
+];
+const SPEED_PAUSE = { fast: 0, normal: 700, eco: 2800 };
+
+// ───────────────────────── Κατάσταση ─────────────────────────
+const brain = new Brain();
+let embedder = null, modelKey = null; // embedder = brain (ή mock για δοκιμές)
+let stream = null, running = false, loopToken = 0;
+let wakeLock = null;
+const rt = new Map(); // runtime ανά κανόνα: { ema, streak, lastFired, score, box }
+const textCache = new Map(); // κείμενο → embedding
+let prepared = []; // [{ rule, pos, negs }]
+let events = [];
+const stat = { startedAt: 0, cycles: 0, cycleMs: 0, lastCycleEnd: 0, errors: 0, fired: 0, people: 0, battery: null, lowBatSent: false };
+let lastPeople = [];
+let lastVideoTime = -1, videoStallSince = 0;
+
+const frame = document.createElement("canvas");
+const fctx = frame.getContext("2d", { willReadFrequently: true });
+const crops = []; // επαναχρησιμοποιούμενοι καμβάδες για τα κομμάτια της εικόνας
+const yolo = document.createElement("canvas");
+yolo.width = yolo.height = 640;
+const yctx = yolo.getContext("2d", { willReadFrequently: true });
+
+function squareCrop(dst, src, x1, y1, x2, y2, size = 256) {
+  dst.width = dst.height = size;
+  const ctx = dst.getContext("2d", { willReadFrequently: true });
+  ctx.fillStyle = "rgb(127,127,127)";
+  ctx.fillRect(0, 0, size, size);
+  const w = x2 - x1, h = y2 - y1, s = size / Math.max(w, h);
+  ctx.drawImage(src, x1, y1, w, h, (size - w * s) / 2, (size - h * s) / 2, w * s, h * s);
+  return ctx.getImageData(0, 0, size, size);
+}
+const dot = (a, b) => { let s = 0; for (let i = 0; i < a.length; i++) s += a[i] * b[i]; return s; };
+
+// ───────────────────────── UI βοηθητικά ─────────────────────────
+let toastT;
+function toast(text, ms = 3500) {
+  els.toast.textContent = text;
+  els.toast.classList.add("show");
+  clearTimeout(toastT);
+  toastT = setTimeout(() => els.toast.classList.remove("show"), ms);
+}
+function setStatus(text, cls = "") {
+  els.status.textContent = text;
+  els.status.className = "pill " + cls;
+}
+function setMsg(text, err = false) {
+  els.msg.textContent = text || "";
+  els.msg.className = "msg" + (err ? " err" : "");
+}
+function setProgress(frac) {
+  els.prog.style.display = frac == null ? "none" : "block";
+  if (frac != null) els.prog.firstElementChild.style.width = Math.round(frac * 100) + "%";
+}
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const hasGreek = (s) => /[Ͱ-Ͽἀ-῿]/.test(s || "");
+const fmtDur = (ms) => {
+  const s = Math.floor(ms / 1000), h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60);
+  return (h ? h + ":" + String(m).padStart(2, "0") : m) + ":" + String(s % 60).padStart(2, "0");
+};
+
+// ───────────────────────── Κανόνες: UI ─────────────────────────
+function renderRules() {
+  els.rules.innerHTML = rules.map((r) => `
+    <div class="card ${r.on ? "" : "off"}" data-id="${r.id}">
+      <div class="row">
+        <input type="text" class="name" data-k="name" value="${esc(r.name)}" placeholder="Όνομα κανόνα">
+        <label class="switch"><input type="checkbox" data-k="on" ${r.on ? "checked" : ""}><span></span></label>
+      </div>
+      <label class="field">Τι να εντοπίζει <b>(στα αγγλικά)</b>
+        <textarea data-k="what" rows="2" placeholder="π.χ. a woman wearing a military uniform">${esc(r.what)}</textarea>
+      </label>
+      <div class="warn" data-warn>⚠ Γράψ' το στα αγγλικά — το μοντέλο καταλαβαίνει μόνο αγγλικά.</div>
+      <label class="field">Να ΜΗΝ το μπερδεύει με… (προαιρετικό, αγγλικά, χωρισμένα με κόμμα)
+        <input type="text" data-k="ignore" value="${esc(r.ignore)}" placeholder="π.χ. a woman in green clothes">
+      </label>
+      <label class="field">Ευαισθησία — χτυπάει πάνω από <b data-thv>${r.threshold}%</b>
+        <input type="range" min="25" max="95" step="1" data-k="threshold" value="${r.threshold}">
+      </label>
+      <div class="sub">Αριστερά = χτυπάει πιο εύκολα (και πιο συχνά λάθος), δεξιά = πιο αυστηρό.</div>
+      <label class="field">Τι να κάνει</label>
+      <div class="chips">
+        <label class="chip">🔊 <select data-k="sound"><option value="">Χωρίς ήχο</option>
+          ${Object.entries(SOUNDS).map(([k, v]) => `<option value="${k}" ${r.sound === k ? "selected" : ""}>${v}</option>`).join("")}
+        </select></label>
+        <label class="chip"><input type="checkbox" data-k="vibrate" ${r.vibrate ? "checked" : ""}> 📳 Δόνηση</label>
+        <label class="chip"><input type="checkbox" data-k="notify" ${r.notify ? "checked" : ""}> 📨 Μήνυμα</label>
+        <label class="chip"><input type="checkbox" data-k="photo" ${r.photo ? "checked" : ""}> 📷 + φωτό</label>
+      </div>
+      <label class="field">🗣 Να πει φωναχτά (προαιρετικό)
+        <input type="text" data-k="say" value="${esc(r.say)}" placeholder="π.χ. Προσοχή!">
+      </label>
+      <div class="row" style="margin-top:12px">
+        <button class="small" data-act="test">Δοκιμή ενεργειών</button>
+        <span style="flex:1"></span>
+        <button class="small danger" data-act="del">Διαγραφή</button>
+      </div>
+    </div>`).join("");
+  els.rules.querySelectorAll(".card").forEach((card) => {
+    const r = rules.find((x) => x.id === card.dataset.id);
+    card.querySelector("[data-warn]").style.display = hasGreek(r.what) ? "block" : "none";
+  });
+  renderLive();
+}
+
+function onRuleEdit(e) {
+  const card = e.target.closest(".card");
+  const k = e.target.dataset.k;
+  if (!card || !k) return;
+  const r = rules.find((x) => x.id === card.dataset.id);
+  const v = e.target.type === "checkbox" ? e.target.checked : e.target.type === "range" ? +e.target.value : e.target.value;
+  r[k] = v;
+  if (k === "on") card.classList.toggle("off", !v);
+  if (k === "threshold") card.querySelector("[data-thv]").textContent = v + "%";
+  if (k === "what") card.querySelector("[data-warn]").style.display = hasGreek(v) ? "block" : "none";
+  saveRules();
+  if (["what", "ignore", "on"].includes(k)) schedulePrepare();
+  if (["name", "on", "threshold"].includes(k)) renderLive();
+}
+els.rules.addEventListener("input", onRuleEdit);
+els.rules.addEventListener("change", onRuleEdit);
+
+els.rules.addEventListener("click", async (e) => {
+  const btn = e.target.closest("[data-act]");
+  if (!btn) return;
+  const r = rules.find((x) => x.id === btn.closest(".card").dataset.id);
+  if (btn.dataset.act === "del") {
+    if (!confirm(`Διαγραφή «${r.name}»;`)) return;
+    rules = rules.filter((x) => x !== r);
+    rt.delete(r.id);
+    saveRules();
+    renderRules();
+    schedulePrepare();
+  } else if (btn.dataset.act === "test") {
+    unlockAudio();
+    fire(r, { test: true });
+  }
+});
+
+$("#addRule").addEventListener("click", () => {
+  rules.push({ id: uid(), on: true, name: "Νέος κανόνας", what: "", ignore: "", threshold: 55,
+    sound: "beep", vibrate: true, say: "", notify: false, photo: true });
+  saveRules();
+  renderRules();
+  els.rules.lastElementChild.querySelector("textarea").focus();
+});
+
+function renderLive() {
+  const active = rules.filter((r) => r.on);
+  els.live.innerHTML = running || stat.cycles ? active.map((r) => `
+    <div class="lrow" data-id="${r.id}">
+      <span class="n">${esc(r.name)}</span>
+      <span class="bar"><i></i><u style="left:${r.threshold}%"></u></span>
+      <span class="v">–</span>
+    </div>`).join("") : "";
+}
+
+function updateLive() {
+  for (const row of els.live.querySelectorAll(".lrow")) {
+    const r = rules.find((x) => x.id === row.dataset.id);
+    const st = rt.get(row.dataset.id);
+    if (!r || !st) continue;
+    const pct = Math.round(st.ema * 100);
+    const bar = row.querySelector("i");
+    bar.style.width = pct + "%";
+    bar.classList.toggle("hot", pct >= r.threshold);
+    row.querySelector(".v").textContent = pct + "%";
+  }
+}
+
+// ───────────────────────── Ρυθμίσεις: UI ─────────────────────────
+$("#modelSel").innerHTML = Object.entries(CLIP_MODELS).map(([k, m]) => `<option value="${k}">${m.label}</option>`).join("");
+document.querySelectorAll("[data-set]").forEach((el) => {
+  el.value = settings[el.dataset.set] ?? "";
+  el.addEventListener("change", () => {
+    const k = el.dataset.set;
+    settings[k] = ["cooldown", "confirm"].includes(k) ? Math.max(0, +el.value || 0) : el.value.trim();
+    saveSettings();
+    if (k === "model" && modelKey && modelKey !== settings.model) {
+      toast("Το νέο μοντέλο θα φορτώσει στην επόμενη Έναρξη");
+    }
+  });
+});
+
+$("#testNotify").addEventListener("click", async () => {
+  if (!notifyConfigured()) return toast("Συμπλήρωσε πρώτα ntfy ή Telegram");
+  try {
+    const where = await sendMessage(settings, "CamWatch: δοκιμαστικό μήνυμα ✅");
+    toast("Στάλθηκε: " + where.join(", "));
+  } catch (e) { toast("Απέτυχε — " + e.message, 6000); }
+});
+$("#tgFind").addEventListener("click", async () => {
+  if (!settings.tgToken) return toast("Βάλε πρώτα το token");
+  try {
+    settings.tgChat = await telegramFindChat(settings.tgToken);
+    document.querySelector('[data-set="tgChat"]').value = settings.tgChat;
+    saveSettings();
+    toast("Βρέθηκε ✅");
+  } catch (e) { toast(e.message, 6000); }
+});
+$("#resetBtn").addEventListener("click", () => {
+  if (!confirm("Να σβηστούν κανόνες και ρυθμίσεις;")) return;
+  try { localStorage.removeItem("cw_rules"); localStorage.removeItem("cw_settings"); } catch {}
+  location.reload();
+});
+const notifyConfigured = () => !!(settings.ntfyTopic || (settings.tgToken && settings.tgChat));
+
+// ───────────────────────── Μοντέλα ─────────────────────────
+let loading = null;
+function loadModels() {
+  loading = loading || _loadModels().finally(() => { loading = null; });
+  return loading;
+}
+async function _loadModels() {
+  const parts = { det: [0, 12.8e6], clip: [0, 90e6] };
+  brain.onProgress = (part, l, t) => {
+    parts[part] = [l, Math.max(t, 1)];
+    const L = parts.det[0] + parts.clip[0], T = parts.det[1] + parts.clip[1];
+    setProgress(L / T);
+    setStatus(`Φόρτωση ${Math.round((L / T) * 100)}%`);
+  };
+  const needLoad = !brain.ready || modelKey !== settings.model;
+  if (needLoad) {
+    setMsg(store.get("cw_models_ok", false) ? "Φορτώνω τα μοντέλα…" : "Κατεβάζω τα μοντέλα (μόνο την πρώτη φορά, ~100MB — καλύτερα με WiFi)…");
+    setProgress(0);
+  }
+  try {
+    if (!brain.ready || modelKey !== settings.model) {
+      if (modelKey !== settings.model) textCache.clear();
+      await brain.start({ modelKey: settings.model, yoloUrls: YOLO_URLS });
+      modelKey = settings.model;
+    }
+    embedder = window.__camwatchEmbedder || brain;
+    store.set("cw_models_ok", true);
+    setProgress(null);
+    setMsg(`Μοντέλα έτοιμα${brain.device === "webgpu" ? " (GPU ⚡)" : ""}.`);
+    await prepareRules();
+    return true;
+  } catch (e) {
+    console.error(e);
+    setProgress(null);
+    setStatus("Σφάλμα", "err");
+    setMsg("Δεν φόρτωσαν τα μοντέλα: " + (e.message || e) + " — δοκίμασε άλλο μοντέλο στις Ρυθμίσεις ή έλεγξε το ίντερνετ.", true);
+    return false;
+  }
+}
+brain.onRestart = (reason) => {
+  stat.restarts = (stat.restarts || 0) + 1;
+  console.warn("AI restart:", reason);
+};
+
+let prepT;
+function schedulePrepare() {
+  clearTimeout(prepT);
+  prepT = setTimeout(() => embedder && prepareRules().catch((e) => console.error(e)), 600);
+}
+
+async function prepareRules() {
+  const wanted = new Set(NEGATIVES);
+  const posTexts = (r) => {
+    const t = r.what.trim().replace(/[.!]+$/, "");
+    return /^(a |an |the )?photo/i.test(t) ? [t] : [`a photo of ${t}`, t];
+  };
+  const extra = (r) => r.ignore.split(",").map((s) => s.trim()).filter(Boolean);
+  const active = rules.filter((r) => r.on && r.what.trim());
+  for (const r of active) { posTexts(r).forEach((t) => wanted.add(t)); extra(r).forEach((t) => wanted.add(t)); }
+  const missing = [...wanted].filter((t) => !textCache.has(t));
+  for (let i = 0; i < missing.length; i += 16) {
+    const batch = missing.slice(i, i + 16);
+    const embs = await embedder.embedTexts(batch);
+    batch.forEach((t, j) => textCache.set(t, embs[j]));
+  }
+  const avg = (vs) => {
+    const out = new Array(vs[0].length).fill(0);
+    vs.forEach((v) => v.forEach((x, i) => (out[i] += x)));
+    const n = Math.hypot(...out) || 1;
+    return out.map((x) => x / n);
+  };
+  prepared = active.map((r) => ({
+    rule: r,
+    pos: avg(posTexts(r).map((t) => textCache.get(t))),
+    negs: [...NEGATIVES, ...extra(r)].map((t) => textCache.get(t)),
+  }));
+}
+
+function scoreFor(p, img) {
+  const logits = [100 * dot(img, p.pos), ...p.negs.map((n) => 100 * dot(img, n))];
+  const m = Math.max(...logits);
+  const ex = logits.map((l) => Math.exp(l - m));
+  return ex[0] / ex.reduce((a, b) => a + b, 0);
+}
+
+// ───────────────────────── Κάμερα ─────────────────────────
+let camStarting = null;
+function startCamera() {
+  camStarting = camStarting || _startCamera().finally(() => { camStarting = null; });
+  return camStarting;
+}
+async function _startCamera() {
+  stopCamera();
+  console.info("camera: άνοιγμα");
+  stream = await navigator.mediaDevices.getUserMedia({
+    audio: false,
+    video: { facingMode: settings.facing, width: { ideal: 1280 }, height: { ideal: 720 } },
+  });
+  els.video.srcObject = stream;
+  console.info("camera: ok");
+  await els.video.play().catch(() => {});
+  els.hint.style.display = "none";
+  const track = stream.getVideoTracks()[0];
+  track.addEventListener("ended", () => {
+    if (running) { console.warn("Η κάμερα σταμάτησε — επανεκκίνηση"); setTimeout(() => running && startCamera().catch(onCamError), 1000); }
+  });
+  lastVideoTime = -1;
+  videoStallSince = performance.now();
+}
+function stopCamera() {
+  stream?.getTracks().forEach((t) => t.stop());
+  stream = null;
+}
+function onCamError(e) {
+  console.error(e);
+  setMsg("Δεν άνοιξε η κάμερα: " + (e.message || e.name) + ". Δώσε άδεια κάμερας στον browser.", true);
+}
+
+$("#flipBtn").addEventListener("click", async () => {
+  settings.facing = settings.facing === "environment" ? "user" : "environment";
+  saveSettings();
+  if (running) await startCamera().catch(onCamError);
+});
+
+// ───────────────────────── Οθόνη ανοιχτή / μπαταρία ─────────────────────────
+async function keepAwake() {
+  try {
+    if ("wakeLock" in navigator && !wakeLock) {
+      wakeLock = await navigator.wakeLock.request("screen");
+      wakeLock.addEventListener("release", () => { wakeLock = null; });
+    }
+  } catch (e) { console.warn("wakeLock", e); }
+}
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && running) {
+    keepAwake();
+    if (!stream || stream.getVideoTracks()[0]?.readyState !== "live") startCamera().catch(onCamError);
+  }
+});
+(async () => {
+  try {
+    const b = await navigator.getBattery?.();
+    if (!b) return;
+    const upd = () => { stat.battery = { level: b.level, charging: b.charging }; };
+    upd();
+    b.addEventListener("levelchange", upd);
+    b.addEventListener("chargingchange", upd);
+  } catch {}
+})();
+
+$("#darkBtn").addEventListener("click", () => els.blackout.classList.add("on"));
+els.blackout.addEventListener("click", () => els.blackout.classList.remove("on"));
+
+// ───────────────────────── Κύριος βρόχος ─────────────────────────
+els.start.addEventListener("click", async () => {
+  if (running) return stop();
+  unlockAudio();
+  els.start.disabled = true;
+  try {
+    const camP = startCamera(); // ζήτα άδεια κάμερας αμέσως (μέσα στο πάτημα)
+    const ok = await loadModels();
+    await camP.catch((e) => { onCamError(e); throw e; });
+    if (!ok) { stopCamera(); return; }
+    if (!prepared.length) toast("Δεν υπάρχει ενεργός κανόνας με περιγραφή");
+    running = true;
+    stat.startedAt = Date.now();
+    stat.cycles = 0;
+    stat.lowBatSent = false;
+    stat.lastCycleEnd = performance.now();
+    for (const r of rules) rt.set(r.id, { ema: 0, streak: 0, lastFired: 0, score: 0, box: null });
+    await keepAwake();
+    if (!("wakeLock" in navigator)) toast("Ο browser δεν κρατάει την οθόνη ανοιχτή — βάλε «Αυτόματο κλείδωμα: Ποτέ» στο κινητό", 7000);
+    els.start.textContent = "■ Διακοπή";
+    els.start.classList.add("stop");
+    renderLive();
+    runLoop(++loopToken);
+  } catch (e) {
+    console.error(e);
+  } finally {
+    els.start.disabled = false;
+  }
+});
+
+function stop() {
+  running = false;
+  loopToken++;
+  stopCamera();
+  wakeLock?.release?.().catch?.(() => {});
+  wakeLock = null;
+  els.start.textContent = "▶ Έναρξη";
+  els.start.classList.remove("stop");
+  els.hint.style.display = "";
+  els.blackout.classList.remove("on");
+  clearOverlay();
+  setStatus("Σταμάτησε");
+}
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+async function runLoop(token) {
+  while (running && token === loopToken) {
+    if (document.hidden) { await sleep(500); continue; }
+    try {
+      await cycle();
+      stat.errors = 0;
+    } catch (e) {
+      stat.errors++;
+      console.error(e);
+      setMsg("Σφάλμα στην ανάλυση: " + (e.message || e), true);
+      if (stat.errors > 5) { await sleep(3000); }
+    }
+    stat.lastCycleEnd = performance.now();
+    renderStats();
+    await sleep(SPEED_PAUSE[settings.speed] ?? 700);
+  }
+}
+
+// Φύλακας: αν κάτι «κολλήσει», ξεκινάει τον βρόχο ξανά
+setInterval(() => {
+  if (!running || document.hidden) return;
+  const now = performance.now();
+  if (stat.lastCycleEnd && now - stat.lastCycleEnd > 30000) {
+    console.warn("Ο βρόχος κόλλησε — επανεκκίνηση");
+    stat.lastCycleEnd = now;
+    runLoop(++loopToken);
+  }
+  // κάμερα παγωμένη;
+  const vt = els.video.currentTime;
+  if (vt !== lastVideoTime) { lastVideoTime = vt; videoStallSince = now; }
+  else if (now - videoStallSince > 10000) {
+    console.warn("Η εικόνα πάγωσε — επανεκκίνηση κάμερας");
+    videoStallSince = now;
+    startCamera().catch(onCamError);
+  }
+  // μπαταρία
+  const b = stat.battery;
+  if (b && !b.charging && b.level <= 0.15 && !stat.lowBatSent) {
+    stat.lowBatSent = true;
+    toast("🔋 Χαμηλή μπαταρία — βάλε φορτιστή", 8000);
+    if (notifyConfigured()) sendMessage(settings, `🔋 CamWatch: μπαταρία ${Math.round(b.level * 100)}%`).catch(() => {});
+  }
+}, 5000);
+
+async function cycle() {
+  const v = els.video;
+  const vw = v.videoWidth, vh = v.videoHeight;
+  if (!vw || !vh || v.readyState < 2) return;
+  const t0 = performance.now();
+  // «πάγωσε» το καρέ σε μικρότερο μέγεθος (γρηγορότερο)
+  const s = Math.min(1, 960 / Math.max(vw, vh));
+  const fw = Math.round(vw * s), fh = Math.round(vh * s);
+  if (frame.width !== fw || frame.height !== fh) { frame.width = fw; frame.height = fh; }
+  fctx.drawImage(v, 0, 0, fw, fh);
+
+  const scale = 640 / Math.max(fw, fh);
+  yctx.fillStyle = "rgb(114,114,114)";
+  yctx.fillRect(0, 0, 640, 640);
+  yctx.drawImage(frame, 0, 0, fw, fh, 0, 0, Math.round(fw * scale), Math.round(fh * scale));
+  const det = await brain.detect(yctx.getImageData(0, 0, 640, 640), fw, fh, scale);
+  const people = det.people;
+  lastPeople = people;
+  stat.people = det.total;
+  const regions = [{ box: null }, ...people.map((p) => {
+    const px = (p.x2 - p.x1) * 0.08, py = (p.y2 - p.y1) * 0.05;
+    return { box: { x1: Math.max(0, p.x1 - px), y1: Math.max(0, p.y1 - py), x2: Math.min(fw, p.x2 + px), y2: Math.min(fh, p.y2 + py) } };
+  })];
+
+  const P = prepared; // σταθερό για όλο τον κύκλο, ακόμα κι αν αλλάξουν οι κανόνες στο μεταξύ
+  const best = new Map(P.map((p) => [p.rule.id, { score: 0, box: null }]));
+  if (P.length) {
+    while (crops.length < regions.length) crops.push(document.createElement("canvas"));
+    const cs = regions.map((reg, i) => {
+      const b = reg.box || { x1: 0, y1: 0, x2: fw, y2: fh };
+      return squareCrop(crops[i], frame, b.x1, b.y1, b.x2, b.y2, 256);
+    });
+    const embs = await embedder.embedImages(cs);
+    regions.forEach((reg, i) => {
+      for (const p of P) {
+        const sc = scoreFor(p, embs[i]);
+        const cur = best.get(p.rule.id);
+        if (sc > cur.score) { cur.score = sc; cur.box = reg.box; }
+      }
+    });
+  }
+
+  const now = Date.now();
+  const hits = [];
+  for (const p of P) {
+    const r = p.rule;
+    let st = rt.get(r.id);
+    if (!st) rt.set(r.id, (st = { ema: 0, streak: 0, lastFired: 0, score: 0, box: null }));
+    const b = best.get(r.id);
+    st.score = b.score;
+    st.box = b.box;
+    st.ema = st.ema ? 0.5 * st.ema + 0.5 * b.score : b.score;
+    const over = st.ema * 100 >= r.threshold;
+    st.streak = over ? st.streak + 1 : 0;
+    if (over) hits.push(r);
+    if (st.streak >= Math.max(1, +settings.confirm || 1) && now - st.lastFired >= (+settings.cooldown || 0) * 1000) {
+      st.lastFired = now;
+      fire(r, st);
+    }
+  }
+  stat.cycles++;
+  stat.cycleMs = stat.cycleMs ? 0.8 * stat.cycleMs + 0.2 * (performance.now() - t0) : performance.now() - t0;
+  if (!els.blackout.classList.contains("on")) { drawOverlay(people, hits, fw, fh); updateLive(); }
+  if (els.msg.classList.contains("err")) setMsg("");
+}
+
+// ───────────────────────── Σχέδιο ─────────────────────────
+function clearOverlay() {
+  const c = els.overlay;
+  c.getContext("2d").clearRect(0, 0, c.width, c.height);
+}
+function drawOverlay(people, hits, fw, fh) {
+  const c = els.overlay;
+  const W = c.clientWidth, H = c.clientHeight, dpr = devicePixelRatio || 1;
+  if (c.width !== Math.round(W * dpr) || c.height !== Math.round(H * dpr)) { c.width = Math.round(W * dpr); c.height = Math.round(H * dpr); }
+  const ctx = c.getContext("2d");
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+  const sc = Math.min(W / fw, H / fh), ox = (W - fw * sc) / 2, oy = (H - fh * sc) / 2;
+  const hitBoxes = new Map();
+  for (const r of hits) {
+    const st = rt.get(r.id);
+    if (st?.box) hitBoxes.set(st.box, [...(hitBoxes.get(st.box) || []), r.name]);
+  }
+  ctx.lineWidth = 2.5;
+  ctx.font = "600 13px system-ui, sans-serif";
+  const drawBox = (b, color, label) => {
+    const x = ox + b.x1 * sc, y = oy + b.y1 * sc, w = (b.x2 - b.x1) * sc, h = (b.y2 - b.y1) * sc;
+    ctx.strokeStyle = color;
+    ctx.strokeRect(x, y, w, h);
+    if (label) {
+      const tw = ctx.measureText(label).width + 10;
+      ctx.fillStyle = color;
+      ctx.fillRect(x, Math.max(0, y - 20), tw, 20);
+      ctx.fillStyle = "#04130a";
+      ctx.fillText(label, x + 5, Math.max(14, y - 6));
+    }
+  };
+  // κουτιά ατόμων (λευκά) — πράσινα όσα ταιριάζουν σε κανόνα
+  const people2 = people.map((p) => ({ ...p }));
+  for (const p of people2) drawBox(p, "rgba(255,255,255,.55)", "");
+  for (const [box, names] of hitBoxes) drawBox(box, "#4ade80", names.join(" · "));
+  const whole = hits.filter((r) => !rt.get(r.id)?.box).map((r) => r.name);
+  if (whole.length) {
+    ctx.strokeStyle = "#4ade80";
+    ctx.lineWidth = 5;
+    ctx.strokeRect(ox + 2, oy + 2, fw * sc - 4, fh * sc - 4);
+    drawBox({ x1: 0, y1: 0, x2: 0, y2: 0 }, "#4ade80", whole.join(" · "));
+  }
+}
+
+function renderStats() {
+  const parts = [];
+  if (running) {
+    parts.push(`<span>⏱ <b>${fmtDur(Date.now() - stat.startedAt)}</b></span>`);
+    parts.push(`<span>👥 <b>${stat.people}</b></span>`);
+    parts.push(`<span>⚙ <b>${(stat.cycleMs / 1000).toFixed(1)}s</b>/έλεγχο</span>`);
+    parts.push(`<span>🔔 <b>${stat.fired}</b></span>`);
+    if (stat.restarts) parts.push(`<span title="φορές που η AI ξεκίνησε ξανά μόνη της">♻ <b>${stat.restarts}</b></span>`);
+  }
+  if (stat.battery) parts.push(`<span>${stat.battery.charging ? "⚡" : "🔋"} <b>${Math.round(stat.battery.level * 100)}%</b></span>`);
+  els.stats.innerHTML = parts.join("");
+  if (running) setStatus("● Τρέχει " + fmtDur(Date.now() - stat.startedAt), "run");
+}
+
+// ───────────────────────── Ενέργειες ─────────────────────────
+async function snapshot(box) {
+  const c = document.createElement("canvas");
+  const fw = frame.width || 640, fh = frame.height || 480;
+  c.width = fw; c.height = fh;
+  const ctx = c.getContext("2d");
+  if (frame.width) ctx.drawImage(frame, 0, 0);
+  else { ctx.fillStyle = "#222"; ctx.fillRect(0, 0, fw, fh); }
+  if (box) {
+    ctx.strokeStyle = "#4ade80";
+    ctx.lineWidth = Math.max(3, fw / 200);
+    ctx.strokeRect(box.x1, box.y1, box.x2 - box.x1, box.y2 - box.y1);
+  }
+  return new Promise((res) => c.toBlob(res, "image/jpeg", 0.82));
+}
+
+async function fire(r, st) {
+  const test = !!st.test;
+  const time = new Date().toLocaleTimeString("el-GR", { hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23" });
+  if (r.sound) playSound(r.sound);
+  if (r.vibrate) vibrate();
+  if (r.say) speak(r.say);
+  if (!test) stat.fired++;
+  const blob = await snapshot(st.box);
+  if (!test) {
+    events.unshift({ url: URL.createObjectURL(blob), name: r.name, time, score: Math.round((st.ema || 0) * 100) });
+    while (events.length > 40) URL.revokeObjectURL(events.pop().url);
+    renderEvents();
+  }
+  if (r.notify) {
+    if (!notifyConfigured()) { if (test) toast("Ρύθμισε ntfy ή Telegram στις Ρυθμίσεις"); return; }
+    const text = `🔔 ${r.name} — ${time}${test ? " (δοκιμή)" : ""}`;
+    sendMessage(settings, text, r.photo ? blob : null)
+      .then((w) => test && toast("Στάλθηκε: " + w.join(", ")))
+      .catch((e) => toast("Το μήνυμα απέτυχε — " + e.message, 6000));
+  }
+}
+
+function renderEvents() {
+  els.events.innerHTML = events.length
+    ? events.map((e) => `<a class="ev" href="${e.url}" download="camwatch-${e.time.replace(/:/g, "")}.jpg">
+        <img src="${e.url}" alt=""><div>${esc(e.name)}<br><small>${e.time} · ${e.score}%</small></div></a>`).join("")
+    : `<div class="empty">Τίποτα ακόμα.</div>`;
+}
+
+// ───────────────────────── Εκκίνηση ─────────────────────────
+renderRules();
+renderStats();
+// Αν τα μοντέλα έχουν ξανακατέβει, φόρτωσέ τα από τώρα (από την cache, χωρίς ίντερνετ)
+if (store.get("cw_models_ok", false) && !window.__camwatchNoAutoload) {
+  loadModels().then((ok) => ok && setStatus("Έτοιμο"));
+}
+
+// για δοκιμές
+window.__camwatch = { brain, crops, frame, rules: () => rules, rt, stat, events: () => events, prepared: () => prepared, settings: () => settings };
+</script>
+</body>
+</html>
